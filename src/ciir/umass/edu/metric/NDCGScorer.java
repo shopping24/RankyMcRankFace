@@ -50,7 +50,7 @@ public class NDCGScorer extends DCGScorer {
 		{
 			String content = "";
 			String lastQID = "";
-			List<Integer> rel = new ArrayList<Integer>();
+			List<Float> rel = new ArrayList<>();
 			int nQueries = 0;
 			while((content = in.readLine()) != null)
 			{
@@ -60,11 +60,11 @@ public class NDCGScorer extends DCGScorer {
 				String[] s = content.split(" ");
 				String qid = s[0].trim();
 				//String docid = s[2].trim();
-				int label = (int) Math.rint(Double.parseDouble(s[3].trim()));
+				float label = (float) (Double.parseDouble(s[3].trim()));
 				if(lastQID.compareTo("")!=0 && lastQID.compareTo(qid)!=0)
 				{
 					int size = (rel.size() > k) ? k : rel.size();
-					int[] r = new int[rel.size()];
+					float[] r = new float[rel.size()];
 					for(int i=0;i<rel.size();i++)
 						r[i] = rel.get(i);
 					double ideal = getIdealDCG(r, size);
@@ -78,7 +78,7 @@ public class NDCGScorer extends DCGScorer {
 			if(rel.size() > 0)
 			{
 				int size = (rel.size() > k) ? k : rel.size();
-				int[] r = new int[rel.size()];
+				float[] r = new float[rel.size()];
 				for(int i=0;i<rel.size();i++)
 					r[i] = rel.get(i);
 				double ideal = getIdealDCG(r, size);
@@ -105,7 +105,7 @@ public class NDCGScorer extends DCGScorer {
 		if(k > rl.size() || k <= 0)
 			size = rl.size();
 		
-		int[] rel = getRelevanceLabels(rl);
+		float[] rel = getRelevanceLabels(rl);
 		
 		double ideal = 0;
 		Double d = idealGains.get(rl.getID());
@@ -126,7 +126,7 @@ public class NDCGScorer extends DCGScorer {
 	{
 		int size = (rl.size() > k) ? k : rl.size();
 		//compute the ideal ndcg
-		int[] rel = getRelevanceLabels(rl);
+		float[] rel = getRelevanceLabels(rl);
 		double ideal = 0;
 		Double d = idealGains.get(rl.getID());
 		if(d != null)
@@ -147,7 +147,7 @@ public class NDCGScorer extends DCGScorer {
 		for(int i=0;i<size;i++)
 			for(int j=i+1;j<rl.size();j++)
 				if(ideal > 0)
-					changes[j][i] = changes[i][j] = (discount(i) - discount(j)) * (gain(rel[i]) - gain(rel[j])) / ideal;
+					changes[j][i] = changes[i][j] = (discount(i) - discount(j)) * (rel[i] - rel[j]) / ideal;
 
 		return changes;
 	}
@@ -156,12 +156,12 @@ public class NDCGScorer extends DCGScorer {
 		return "NDCG@"+k;
 	}
 	
-	private double getIdealDCG(int[] rel, int topK)
+	private double getIdealDCG(float[] rel, int topK)
 	{
 		int[] idx = Sorter.sort(rel, false);
 		double dcg = 0;
 		for(int i=0;i<topK;i++)
-			dcg += gain(rel[idx[i]]) * discount(i);
+			dcg += rel[idx[i]] * discount(i);
 		return dcg;
 	}
 }

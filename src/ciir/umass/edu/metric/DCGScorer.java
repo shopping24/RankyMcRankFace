@@ -15,8 +15,7 @@ import ciir.umass.edu.utilities.SimpleMath;
 public class DCGScorer extends MetricScorer {
 	
 	protected static double[] discount = null;//cache
-	protected static double[] gain = null;//cache
-	
+
 	public DCGScorer()
 	{
 		this.k = 10;
@@ -26,9 +25,6 @@ public class DCGScorer extends MetricScorer {
 			discount = new double[5000];
 			for(int i=0;i<discount.length;i++)
 				discount[i] = 1.0/SimpleMath.logBase2(i+2);
-			gain = new double[6];
-			for(int i=0;i<6;i++)
-				gain[i] = (1<<i) - 1;//2^i-1
 		}
 	}
 	public DCGScorer(int k)
@@ -40,9 +36,6 @@ public class DCGScorer extends MetricScorer {
 			discount = new double[5000];
 			for(int i=0;i<discount.length;i++)
 				discount[i] = 1.0/SimpleMath.logBase2(i+2);
-			gain = new double[6];
-			for(int i=0;i<6;i++)
-				gain[i] = (1<<i) - 1;//2^i - 1
 		}
 	}
 	public MetricScorer copy()
@@ -61,12 +54,12 @@ public class DCGScorer extends MetricScorer {
 		if(k > rl.size() || k <= 0)
 			size = rl.size();
 		
-		int[] rel = getRelevanceLabels(rl);
+		float[] rel = getRelevanceLabels(rl);
 		return getDCG(rel, size);
 	}
 	public double[][] swapChange(RankList rl)
 	{
-		int[] rel = getRelevanceLabels(rl);
+		float[] rel = getRelevanceLabels(rl);
 		int size = (rl.size() > k) ? k : rl.size();
 		double[][] changes = new double[rl.size()][];
 		for(int i=0;i<rl.size();i++)
@@ -75,7 +68,7 @@ public class DCGScorer extends MetricScorer {
 		//for(int i=0;i<rl.size()-1;i++)//ignore K, compute changes from the entire ranked list
 		for(int i=0;i<size;i++)
 			for(int j=i+1;j<rl.size();j++)
-				changes[j][i] = changes[i][j] = (discount(i) - discount(j)) * (gain(rel[i]) - gain(rel[j]));
+				changes[j][i] = changes[i][j] = (discount(i) - discount(j)) * (rel[i] - rel[j]);
 
 		return changes;
 	}
@@ -84,11 +77,11 @@ public class DCGScorer extends MetricScorer {
 		return "DCG@"+k;
 	}
 	
-	protected double getDCG(int[] rel, int topK)
+	protected double getDCG(float[] rel, int topK)
 	{
 		double dcg = 0;
 		for(int i=0;i<topK;i++)
-			dcg += gain(rel[i]) * discount(i);
+			dcg += rel[i] * discount(i);
 		return dcg;
 	}
 	
@@ -109,20 +102,12 @@ public class DCGScorer extends MetricScorer {
 		discount = tmp;
 		return discount[index];
 	}
-	protected double gain(int rel)
+
+	protected float[] getRelevanceLabels(RankList rl)
 	{
-		if(rel < gain.length)
-			return gain[rel];
-		
-		//we need to expand our cache
-		int cacheSize = gain.length + 10;
-		while(cacheSize <= rel)
-			cacheSize += 10;
-		double[] tmp = new double[cacheSize];
-		System.arraycopy(gain, 0, tmp, 0, gain.length);
-		for(int i=gain.length;i<tmp.length;i++)
-			tmp[i] = (1<<i) - 1;//2^i - 1
-		gain = tmp;
-		return gain[rel];
+		float[] rel = new float[rl.size()];
+		for(int i=0;i<rl.size();i++)
+			rel[i] = rl.get(i).getLabel();
+		return rel;
 	}
 }

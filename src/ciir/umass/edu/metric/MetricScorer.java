@@ -51,15 +51,7 @@ public abstract class MetricScorer {
 			score += score(rl.get(i));
 		return score/rl.size();
 	}
-	
-	protected int[] getRelevanceLabels(RankList rl)
-	{
-		int[] rel = new int[rl.size()];
-		for(int i=0;i<rl.size();i++)
-			rel[i] = (int)rl.get(i).getLabel();
-		return rel;
-	}
-	
+
 	public abstract double score(RankList rl);
 	public abstract MetricScorer copy();
 	public abstract String name();
