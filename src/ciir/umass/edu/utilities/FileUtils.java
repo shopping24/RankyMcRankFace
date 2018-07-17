@@ -91,6 +91,8 @@ public class FileUtils {
 	{
 		BufferedWriter out = null;
 		try{
+			System.out.println("Writing model to output file " + filename + " using encoding " + encoding);
+			System.out.println("Data size: " + strToWrite.length());
 			
 			out = new BufferedWriter(
 			          new OutputStreamWriter(new FileOutputStream(filename), encoding));
@@ -99,6 +101,7 @@ public class FileUtils {
 		}
 		catch(Exception e)
 		{
+			e.printStackTrace();
 			return false;
 		}
 		return true;
